@@ -67,16 +67,22 @@ export const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY;
 export const MINIO_BUCKET = process.env.MINIO_BUCKET; // Optional, if not set bucket will be called: medusa-media
 
 /**
- * (optional) Resend API Key and from Email - do not set if using SendGrid
+ * (optional) Resend API Key and from Email - do not set if using SendGrid or Postmark
  */
 export const RESEND_API_KEY = process.env.RESEND_API_KEY;
 export const RESEND_FROM_EMAIL = process.env.RESEND_FROM;
 
 /**
- * (optionl) SendGrid API Key and from Email - do not set if using Resend
+ * (optionl) SendGrid API Key and from Email - do not set if using Resend or Postmark
  */
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 export const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
+
+/**
+ * (optionl) Postmark API Key and from Email - do not set if using Resend or SendGrid
+ */
+export const POSTMARK_API_KEY = process.env.POSTMARK_API_KEY;
+export const POSTMARK_FROM_EMAIL = process.env.POSTMARK_FROM_EMAIL;
 
 /**
  * (optional) Stripe API key and webhook secret

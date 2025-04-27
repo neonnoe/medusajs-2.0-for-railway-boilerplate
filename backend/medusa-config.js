@@ -21,7 +21,9 @@ import {
   MINIO_SECRET_KEY,
   MINIO_BUCKET,
   MEILISEARCH_HOST,
-  MEILISEARCH_ADMIN_KEY
+  MEILISEARCH_ADMIN_KEY,
+  POSTMARK_API_KEY,
+  POSTMARK_FROM_EMAIL
 } from 'lib/constants';
 
 loadEnv(process.env.NODE_ENV, process.cwd());
@@ -86,11 +88,12 @@ const medusaConfig = {
         }
       }
     }] : []),
-    ...(SENDGRID_API_KEY && SENDGRID_FROM_EMAIL || RESEND_API_KEY && RESEND_FROM_EMAIL ? [{
+    ...(SENDGRID_API_KEY && SENDGRID_FROM_EMAIL || RESEND_API_KEY && RESEND_FROM_EMAIL || POSTMARK_API_KEY && POSTMARK_FROM_EMAIL ? [{
       key: Modules.NOTIFICATION,
       resolve: '@medusajs/notification',
       options: {
         providers: [
+          // SendGrid
           ...(SENDGRID_API_KEY && SENDGRID_FROM_EMAIL ? [{
             resolve: '@medusajs/notification-sendgrid',
             id: 'sendgrid',
@@ -100,6 +103,7 @@ const medusaConfig = {
               from: SENDGRID_FROM_EMAIL,
             }
           }] : []),
+          // Resend
           ...(RESEND_API_KEY && RESEND_FROM_EMAIL ? [{
             resolve: './src/modules/email-notifications',
             id: 'resend',
@@ -107,6 +111,16 @@ const medusaConfig = {
               channels: ['email'],
               api_key: RESEND_API_KEY,
               from: RESEND_FROM_EMAIL,
+            },
+          }] : []),
+          // Postmark
+          ...(POSTMARK_API_KEY && POSTMARK_FROM_EMAIL ? [{
+            resolve: './src/modules/postmark',
+            id: 'postmark',
+            options: {
+              channels: ['email'],
+              api_key: POSTMARK_API_KEY,
+              from: POSTMARK_FROM_EMAIL,
             },
           }] : []),
         ]
