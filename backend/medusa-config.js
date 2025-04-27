@@ -16,10 +16,17 @@ import {
   STRIPE_API_KEY,
   STRIPE_WEBHOOK_SECRET,
   WORKER_MODE,
-  MINIO_ENDPOINT,
-  MINIO_ACCESS_KEY,
-  MINIO_SECRET_KEY,
-  MINIO_BUCKET,
+  // MINIO_ENDPOINT,
+  // MINIO_ACCESS_KEY,
+  // MINIO_SECRET_KEY,
+  // MINIO_BUCKET,
+    // Neue DO Spaces-Variablen:
+  SPACES_ENDPOINT,
+  SPACES_REGION,
+  SPACES_BUCKET,
+  SPACES_PUBLIC_URL,
+  SPACES_ACCESS_KEY_ID,
+  SPACES_SECRET_ACCESS_KEY,
   MEILISEARCH_HOST,
   MEILISEARCH_ADMIN_KEY,
   POSTMARK_API_KEY,
@@ -52,24 +59,49 @@ const medusaConfig = {
       resolve: '@medusajs/file',
       options: {
         providers: [
-          ...(MINIO_ENDPOINT && MINIO_ACCESS_KEY && MINIO_SECRET_KEY ? [{
-            resolve: './src/modules/minio-file',
-            id: 'minio',
-            options: {
-              endPoint: MINIO_ENDPOINT,
-              accessKey: MINIO_ACCESS_KEY,
-              secretKey: MINIO_SECRET_KEY,
-              bucket: MINIO_BUCKET // Optional, default: medusa-media
-            }
-          }] : [{
-            resolve: '@medusajs/file-local',
-            id: 'local',
-            options: {
-              upload_dir: 'static',
-              backend_url: `${BACKEND_URL}/static`
-            }
-          }])
-        ]
+          // DO Spaces / S3-kompatibel
+          ...(SPACES_ENDPOINT &&
+          SPACES_REGION &&
+          SPACES_BUCKET &&
+          SPACES_PUBLIC_URL &&
+          SPACES_ACCESS_KEY_ID &&
+          SPACES_SECRET_ACCESS_KEY
+            ? [{
+                resolve: '@medusajs/medusa/file-s3',
+                id: 'spaces',
+                options: {
+                  endpoint: SPACES_ENDPOINT,        // z.B. "https://nyc3.digitaloceanspaces.com"
+                  region: SPACES_REGION,           // z.B. "nyc3"
+                  bucket: SPACES_BUCKET,           // dein Bucket-Name
+                  file_url: SPACES_PUBLIC_URL,     // z.B. "https://your-bucket.nyc3.digitaloceanspaces.com"
+                  access_key_id: SPACES_ACCESS_KEY_ID,
+                  secret_access_key: SPACES_SECRET_ACCESS_KEY,
+                  // optional:
+                  // prefix: 'media',
+                  // aws_config: { s3ForcePathStyle: true },
+                },
+              }]
+            : []),
+        ],
+        // providers: [
+        //   ...(MINIO_ENDPOINT && MINIO_ACCESS_KEY && MINIO_SECRET_KEY ? [{
+        //     resolve: './src/modules/minio-file',
+        //     id: 'minio',
+        //     options: {
+        //       endPoint: MINIO_ENDPOINT,
+        //       accessKey: MINIO_ACCESS_KEY,
+        //       secretKey: MINIO_SECRET_KEY,
+        //       bucket: MINIO_BUCKET // Optional, default: medusa-media
+        //     }
+        //   }] : [{
+        //     resolve: '@medusajs/file-local',
+        //     id: 'local',
+        //     options: {
+        //       upload_dir: 'static',
+        //       backend_url: `${BACKEND_URL}/static`
+        //     }
+        //   }])
+        // ]
       }
     },
     ...(REDIS_URL ? [{

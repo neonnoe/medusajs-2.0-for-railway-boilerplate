@@ -85,6 +85,16 @@ export const POSTMARK_API_KEY = process.env.POSTMARK_API_KEY;
 export const POSTMARK_FROM_EMAIL = process.env.POSTMARK_FROM_EMAIL;
 
 /**
+ * (optional) DO Spaces configuration
+ */
+export const SPACES_ENDPOINT = process.env.SPACES_ENDPOINT;
+export const SPACES_REGION = process.env.SPACES_REGION;
+export const SPACES_BUCKET = process.env.SPACES_BUCKET;
+export const SPACES_PUBLIC_URL = process.env.SPACES_PUBLIC_URL;
+export const SPACES_ACCESS_KEY_ID = process.env.SPACES_ACCESS_KEY_ID;
+export const SPACES_SECRET_ACCESS_KEY = process.env.SPACES_SECRET_ACCESS_KEY;
+
+/**
  * (optional) Stripe API key and webhook secret
  */
 export const STRIPE_API_KEY = process.env.STRIPE_API_KEY;
