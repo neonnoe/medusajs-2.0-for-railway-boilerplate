@@ -54,6 +54,15 @@ export default class PostmarkNotificationProviderService
     const { to, template, data: model } = input
 
     try {
+      this.logger.debug(
+        JSON.stringify({
+          message: "Sending Postmark email",
+          to,
+          template,
+          model: JSON.stringify(model, null, 2)
+        })
+      )
+
       const res = await this.client_.sendEmailWithTemplate({
         From:          this.from_,
         To:            to,
@@ -63,15 +72,36 @@ export default class PostmarkNotificationProviderService
       })
 
       if (res.ErrorCode) {
-        const err = new Error(JSON.stringify(res))
-        this.logger.error("Postmark returned an error", err)
-        return {}
+        const error = new Error(`Postmark error: ${res.Message}`)
+        this.logger.error(error.message)
+        throw error
       }
+
+      this.logger.debug(
+        JSON.stringify({
+          message: "Postmark email sent successfully",
+          messageId: res.MessageID,
+          to,
+          template
+        })
+      )
 
       return { id: res.MessageID }
     } catch (err) {
-      this.logger.error("Failed to send Postmark email", err)
-      return {}
+      const error = err instanceof Error ? err : new Error("Unknown error occurred")
+      this.logger.error(
+        JSON.stringify({
+          message: "Failed to send Postmark email",
+          errorMessage: error.message,
+          errorStack: error.stack,
+          input: {
+            to,
+            template,
+            modelKeys: model ? Object.keys(model) : []
+          }
+        })
+      )
+      throw error
     }
   }
 }

@@ -82,14 +82,14 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
 
       return {
         ...orderData,
-        // 5a) oberste Summen
-        subtotal:           fmt.format(orderData.subtotal),
-        tax_total:          fmt.format(orderData.tax_total),
-        total:              fmt.format(orderData.total),
-        shipping_subtotal:  fmt.format(orderData.shipping_subtotal),
-        shipping_tax_total: fmt.format(orderData.shipping_tax_total),
-        shipping_total:     fmt.format(orderData.shipping_total),
-        item_total:         fmt.format(orderData.item_total ?? 0),
+        // Keep original values and add formatted versions
+        formatted_subtotal:           fmt.format(orderData.subtotal),
+        formatted_tax_total:          fmt.format(orderData.tax_total),
+        formatted_total:              fmt.format(orderData.total),
+        formatted_shipping_subtotal:  fmt.format(orderData.shipping_subtotal),
+        formatted_shipping_tax_total: fmt.format(orderData.shipping_tax_total),
+        formatted_shipping_total:     fmt.format(orderData.shipping_total),
+        formatted_item_total:         fmt.format(orderData.item_total ?? 0),
 
         // 5b) Check items array and individual items before mapping
         items: (orderData.items || []).map((i) => {
@@ -98,10 +98,10 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
           // Format item prices, providing 0 as fallback if null/undefined
           return {
             ...i,
-            unit_price:     fmt.format(i.unit_price ?? 0),
-            total:          fmt.format(i.total ?? 0),
-            original_total: fmt.format(i.original_total ?? 0),
-            discount_total: fmt.format(i.discount_total ?? 0),
+            formatted_unit_price:     fmt.format(i.unit_price ?? 0),
+            formatted_total:          fmt.format(i.total ?? 0),
+            formatted_original_total: fmt.format(i.original_total ?? 0),
+            formatted_discount_total: fmt.format(i.discount_total ?? 0),
           };
         }).filter(item => item !== null), // Filter out any null items
       }
