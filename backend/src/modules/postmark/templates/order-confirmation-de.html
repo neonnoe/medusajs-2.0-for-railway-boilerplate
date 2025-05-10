@@ -1,0 +1,90 @@
+<h1 style="font-size:24px;margin:0;color:#000">
+  Vielen Dank für Ihre Bestellung #{{order.display_id}}!
+</h1>
+<p style="font-size:14px;line-height:20px;color:#000;margin-top:10px">
+  Wir freuen uns, Ihren Einkauf bestätigen zu können und werden Ihre Bestellung für den Versand vorbereiten. Nachfolgend finden Sie eine Zusammenfassung Ihrer Bestellung.
+</p>
+
+<h2 style="font-size:18px;margin-top:20px;margin-bottom:10px;font-weight:bold">
+  Bestellte Artikel
+</h2>
+
+<table width="100%" style="margin-bottom: 20px;">
+  {{#each order.items}}
+  <tr>
+    <!-- 1) Thumbnail -->
+    <td width="80" valign="top">
+      <img
+        src="{{thumbnail}}"
+        width="70"
+        style="border-radius: 4px;"
+        alt="{{product_title}}"
+      />
+    </td>
+
+    <!-- 2) Product name & unit price -->
+    <td style="padding-left: 12px; vertical-align: top;">
+      <p style="margin: 0; font-weight: bold;">
+        {{quantity}}x {{product_title}}
+      </p>
+      <p style="margin: 2px 0; color: #6C7280;">
+        Einzelpreis: {{formatted_unit_price}}
+      </p>
+    </td>
+
+    <!-- 3) Line total, right-aligned -->
+    <td style="text-align: right; vertical-align: top; font-weight: bold;">
+      {{formatted_total}}
+    </td>
+  </tr>
+  {{/each}}
+</table>
+
+<table width="66%" align="right" style="border-top:1px solid #ccc;border-bottom:1px solid #ccc;padding-top:20px;padding-bottom:15px;margin-bottom:40px">
+  <tr>
+    <td>Warenwert:</td>
+    <td style="text-align: right;">{{order.formatted_subtotal}}</td>
+  </tr>
+  <tr>
+    <td>Versand:</td>
+    <td style="text-align: right;">{{order.formatted_shipping_total}}</td>
+  </tr>
+  <tr>
+    <td>MwSt.:</td>
+    <td style="text-align: right;">{{order.formatted_tax_total}}</td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold;">Gesamtbetrag:</td>
+    <td style="text-align: right; font-weight: bold;">{{order.formatted_total}}</td>
+  </tr>
+</table>
+
+<table width="100%" style="margin-bottom:40px;">
+  <tr>
+    {{#order.billing_address}}
+    <td>
+      <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Rechnungsadresse</h3>
+      <p style="margin: 0; font-size: 14px; line-height: 20px;">
+        {{first_name}} {{last_name}}<br />
+        {{#company}}{{.}}<br />{{/company}}
+        {{address_1}}<br />
+        {{#address_2}}{{.}}<br />{{/address_2}}
+        {{postal_code}} {{city}}<br />
+        {{country}}
+      </p>
+    </td>
+    {{/order.billing_address}}
+
+    <td>
+      <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Lieferadresse</h3>
+      <p style="margin: 0; font-size: 14px; line-height: 20px;">
+        {{order.shipping_address.first_name}} {{order.shipping_address.last_name}}<br />
+        {{#order.shipping_address.company}}{{.}}<br />{{/order.shipping_address.company}}
+        {{order.shipping_address.address_1}}<br />
+        {{#order.shipping_address.address_2}}{{.}}<br />{{/order.shipping_address.address_2}}
+        {{order.shipping_address.postal_code}} {{order.shipping_address.city}}<br />
+        {{order.shipping_address.country}}
+      </p>
+    </td>
+  </tr>
+</table> 

@@ -66,10 +66,16 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
           `Order ${id} not found after query.`
         )
       }
+      
+      // Log the address structures for debugging
+      console.log("Billing Address:", JSON.stringify(o.billing_address, null, 2));
+      console.log("Shipping Address:", JSON.stringify(o.shipping_address, null, 2));
+      
       return o
     })
 
     // 5) Formatiere alle Preise – auch innerhalb der Items
+    // @ts-ignore - Complex union type
     const formattedOrder = transform({ orderData }, ({ orderData }) => {
       const currency = orderData.currency_code.toUpperCase()
       const locale   = currency === "EUR" ? "de-DE" : "en-US"

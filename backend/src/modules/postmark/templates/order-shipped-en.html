@@ -1,0 +1,143 @@
+<h1 style="font-size:24px;margin:0;color:#000">
+  Your Order Has Been Shipped!
+</h1>
+<p style="font-size:14px;line-height:20px;color:#000;margin-top:10px">
+  We're excited to let you know that your order #{{order.display_id}} has been shipped and is on its way to you!
+</p>
+
+<!-- Tracking information directly from tracking property -->
+{{#order.tracking.number}}
+<div style="background-color:#f7f7f7;padding:15px;border-radius:4px;margin:20px 0;">
+  <h3 style="font-size:16px;margin-top:0;margin-bottom:10px;">Tracking Information</h3>
+  <p style="margin:5px 0;"><strong>Tracking Number:</strong> {{order.tracking.number}}</p>
+  {{#order.tracking.carrier}}
+  <p style="margin:5px 0;"><strong>Carrier:</strong> {{.}}</p>
+  {{/order.tracking.carrier}}
+  {{#order.tracking.url}}
+  <p style="margin:10px 0 0 0;"><a href="{{.}}" style="display:inline-block;background-color:#000;color:#fff;padding:10px 15px;text-decoration:none;border-radius:4px;">Track Your Package</a></p>
+  {{/order.tracking.url}}
+</div>
+{{/order.tracking.number}}
+
+<!-- Debug fulfillment information -->
+{{^order.fulfillments}}
+<p style="font-size:12px;color:#999;margin-top:5px">No fulfillment information available.</p>
+{{/order.fulfillments}}
+
+<!-- Tracking information from fulfillment labels -->
+{{#order.fulfillments}}
+  <!-- DEBUG: Fulfillment ID: {{id}} -->
+
+  <!-- If no labels exist or labels array is empty -->
+  {{^labels.0}}
+  <p style="font-size:12px;color:#999;margin-top:5px">Fulfillment exists but no label information is available.</p>
+  
+  <!-- Try to display tracking numbers directly if labels are missing -->
+  {{#tracking_numbers}}
+  <div style="background-color:#f7f7f7;padding:15px;border-radius:4px;margin:20px 0;">
+    <h3 style="font-size:16px;margin-top:0;margin-bottom:10px;">Tracking Information</h3>
+    <p style="margin:5px 0;"><strong>Tracking Number:</strong> {{.}}</p>
+  </div>
+  {{/tracking_numbers}}
+  {{/labels.0}}
+
+  <!-- Iterate through all labels if they exist -->
+  {{#labels}}
+    <!-- Skip empty label objects -->
+    {{#tracking_number}}
+    <div style="background-color:#f7f7f7;padding:15px;border-radius:4px;margin:20px 0;">
+      <h3 style="font-size:16px;margin-top:0;margin-bottom:10px;">Tracking Information</h3>
+      <p style="margin:5px 0;"><strong>Tracking Number:</strong> {{tracking_number}}</p>
+      {{#tracking_url}}
+      <p style="margin:10px 0 0 0;"><a href="{{.}}" style="display:inline-block;background-color:#000;color:#fff;padding:10px 15px;text-decoration:none;border-radius:4px;">Track Your Package</a></p>
+      {{/tracking_url}}
+    </div>
+    {{/tracking_number}}
+  {{/labels}}
+{{/order.fulfillments}}
+
+<h2 style="font-size:18px;margin-top:20px;margin-bottom:10px;font-weight:bold">
+  Items in Your Order
+</h2>
+
+<table width="100%" style="margin-bottom: 20px;">
+  {{#each order.items}}
+  <tr>
+    <!-- 1) Thumbnail -->
+    <td width="80" valign="top">
+      {{#thumbnail}}
+      <img
+        src="{{.}}"
+        width="70"
+        style="border-radius: 4px;"
+        alt="{{product_title}}"
+      />
+      {{/thumbnail}}
+    </td>
+
+    <!-- 2) Product name & unit price -->
+    <td style="padding-left: 12px; vertical-align: top;">
+      <p style="margin: 0; font-weight: bold;">
+        {{quantity}}x {{product_title}}
+      </p>
+      <p style="margin: 2px 0; color: #6C7280;">
+        Unit price: {{formatted_unit_price}}
+      </p>
+    </td>
+
+    <!-- 3) Line total, right-aligned -->
+    <td style="text-align: right; vertical-align: top; font-weight: bold;">
+      {{formatted_total}}
+    </td>
+  </tr>
+  {{/each}}
+</table>
+
+<table width="66%" align="right" style="border-top:1px solid #ccc;border-bottom:1px solid #ccc;padding-top:20px;padding-bottom:15px;margin-bottom:40px">
+  <tr>
+    <td>Subtotal:</td>
+    <td style="text-align: right;">{{order.formatted_subtotal}}</td>
+  </tr>
+  <tr>
+    <td>Shipping total:</td>
+    <td style="text-align: right;">{{order.formatted_shipping_total}}</td>
+  </tr>
+  <tr>
+    <td>Tax included:</td>
+    <td style="text-align: right;">{{order.formatted_tax_total}}</td>
+  </tr>
+  <tr>
+    <td style="font-weight: bold;">Total:</td>
+    <td style="text-align: right; font-weight: bold;">{{order.formatted_total}}</td>
+  </tr>
+</table>
+
+<table width="100%" style="margin-bottom:40px;">
+  <tr>
+    {{#order.billing_address}}
+    <td>
+      <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Billing Address</h3>
+      <p style="margin: 0; font-size: 14px; line-height: 20px;">
+        {{first_name}} {{last_name}}<br />
+        {{#company}}{{.}}<br />{{/company}}
+        {{address_1}}<br />
+        {{#address_2}}{{.}}<br />{{/address_2}}
+        {{postal_code}} {{city}}<br />
+        {{country}}
+      </p>
+    </td>
+    {{/order.billing_address}}
+
+    <td>
+      <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Shipping Address</h3>
+      <p style="margin: 0; font-size: 14px; line-height: 20px;">
+        {{order.shipping_address.first_name}} {{order.shipping_address.last_name}}<br />
+        {{#order.shipping_address.company}}{{.}}<br />{{/order.shipping_address.company}}
+        {{order.shipping_address.address_1}}<br />
+        {{#order.shipping_address.address_2}}{{.}}<br />{{/order.shipping_address.address_2}}
+        {{order.shipping_address.postal_code}} {{order.shipping_address.city}}<br />
+        {{order.shipping_address.country}}
+      </p>
+    </td>
+  </tr>
+</table> 
