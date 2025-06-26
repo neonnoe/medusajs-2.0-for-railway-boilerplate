@@ -6,6 +6,7 @@ Video instructions: https://youtu.be/PPxenu7IjGM
 - Rename `.env.template` ->  `.env`
 - To connect to your online database from your local machine, copy the `DATABASE_URL` value auto-generated on Railway and add it to your `.env` file.
   - If connecting to a new database, for example a local one, run `pnpm ib` or `npm run ib` to seed the database.
+- Optionally set `N8N_ORDER_PLACED_WEBHOOK` in your `.env` file to trigger an n8n workflow when orders are placed.
 - `pnpm dev` or `npm run dev`
 
 ### requirements
