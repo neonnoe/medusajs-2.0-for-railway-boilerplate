@@ -107,6 +107,12 @@ export const MEILISEARCH_HOST = process.env.MEILISEARCH_HOST;
 export const MEILISEARCH_ADMIN_KEY = process.env.MEILISEARCH_ADMIN_KEY;
 
 /**
+ * (optional) n8n webhook URL triggered when an order is placed
+ */
+export const N8N_ORDER_PLACED_WEBHOOK_URL =
+  process.env.N8N_ORDER_PLACED_WEBHOOK_URL;
+
+/**
  * Worker mode
  */
 export const WORKER_MODE =
