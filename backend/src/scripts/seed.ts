@@ -1,9 +1,3 @@
-import { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
-import {
-  ContainerRegistrationKeys,
-  Modules,
-  ProductStatus,
-} from "@medusajs/framework/utils";
 import {
   createApiKeysWorkflow,
   createInventoryLevelsWorkflow,
@@ -19,6 +13,12 @@ import {
   linkSalesChannelsToStockLocationWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows";
+import { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
+import {
+  ContainerRegistrationKeys,
+  Modules,
+  ProductStatus,
+} from "@medusajs/framework/utils";
 
 export default async function seedDemoData({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
@@ -89,7 +89,6 @@ export default async function seedDemoData({ container }: ExecArgs) {
   await createTaxRegionsWorkflow(container).run({
     input: countries.map((country_code) => ({
       country_code,
-      provider_id: "tp_system"
     })),
   });
   logger.info("Finished seeding tax regions.");
