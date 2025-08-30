@@ -76,9 +76,8 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
         "shipping_options.price_type",
         "shipping_options.includes_tax",
         "shipping_options.profile_id",
-        "shipping_options.price_set.id",
-        "shipping_options.price_set.prices.amount",
-        "shipping_options.price_set.prices.currency_code",
+        "shipping_options.prices.amount",
+        "shipping_options.prices.currency_code",
       ],
       // pagination: { take: 200 },
     })
@@ -93,9 +92,8 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
           .map((gz: any) => String(gz.country_code).toUpperCase())
 
         const options: OptionDTO[] = (z.shipping_options || []).map((o: any) => {
-          const ps = o.price_set || {}
-          const prices: PriceDTO[] = Array.isArray(ps.prices)
-            ? ps.prices
+          const prices: PriceDTO[] = Array.isArray(o.prices)
+            ? o.prices
                 .filter((p: any) => typeof p?.amount === "number" && p?.currency_code)
                 .map((p: any) => ({
                   amount: p.amount,
