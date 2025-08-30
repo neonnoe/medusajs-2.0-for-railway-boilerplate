@@ -56,71 +56,89 @@ const ttlSec = () => Number(process.env.SHIPPING_MATRIX_TTL_SEC || 300)
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   try {
     const forceRevalidate = req.headers["x-revalidate-shipping-matrix"] === "true"
-    if (!forceRevalidate && CACHE && CACHE.until > nowSec()) {
-      return res.json(CACHE.data)
-    }
-
-    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-
-    const { data: zones } = await query.graph({
-      entity: "service_zone",
-      fields: [
-        "id",
-        "name",
-        "geo_zones.id",
-        "geo_zones.type",
-        "geo_zones.country_code",
-        "geo_zones.province_code",
-        "shipping_options.id",
-        "shipping_options.name",
-        "shipping_options.price_type",
-        "shipping_options.includes_tax",
-        "shipping_options.profile_id",
-        "shipping_options.prices.amount",
-        "shipping_options.prices.currency_code",
-      ],
-      // pagination: { take: 200 },
-    })
 
     const filterZoneId = req.query.zone_id as string | undefined
     const filterCountry = (req.query.country as string | undefined)?.toUpperCase()
 
-    const payload: ShippingMatrixResponse = {
-      zones: (zones as any[]).map((z) => {
-        const countries = (z.geo_zones || [])
-          .filter((gz: any) => gz?.type === "country" && gz?.country_code)
-          .map((gz: any) => String(gz.country_code).toUpperCase())
+    let base: ShippingMatrixResponse
+    if (!forceRevalidate && CACHE && CACHE.until > nowSec()) {
+      base = CACHE.data
+    } else {
+      const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-        const options: OptionDTO[] = (z.shipping_options || []).map((o: any) => {
-          const prices: PriceDTO[] = Array.isArray(o.prices)
-            ? o.prices
-                .filter((p: any) => typeof p?.amount === "number" && p?.currency_code)
-                .map((p: any) => ({
-                  amount: p.amount,
-                  currency_code: String(p.currency_code).toUpperCase(),
-                }))
-            : []
+      const { data: zones } = await query.graph({
+        entity: "service_zone",
+        fields: [
+          "id",
+          "name",
+          "geo_zones.id",
+          "geo_zones.type",
+          "geo_zones.country_code",
+          "geo_zones.province_code",
+          "shipping_options.id",
+          "shipping_options.name",
+          "shipping_options.price_type",
+          "shipping_options.includes_tax",
+          "shipping_options.profile_id",
+          "shipping_options.prices.amount",
+          "shipping_options.prices.currency_code",
+        ],
+        // pagination: { take: 200 },
+      })
 
-          const first = prices[0] || null
+      base = {
+        zones: (zones as any[]).map((z) => {
+          const countries = (z.geo_zones || [])
+            .filter((gz: any) => gz?.type === "country" && gz?.country_code)
+            .map((gz: any) => String(gz.country_code).toUpperCase())
+
+          const options: OptionDTO[] = (z.shipping_options || []).map((o: any) => {
+            const prices: PriceDTO[] = Array.isArray(o.prices)
+              ? (() => {
+                  const map = new Map<string, PriceDTO>()
+                  for (const p of o.prices) {
+                    if (typeof p?.amount === "number" && p?.currency_code) {
+                      const code = String(p.currency_code).toUpperCase()
+                      if (!map.has(code)) {
+                        map.set(code, { amount: p.amount, currency_code: code })
+                      }
+                    }
+                  }
+                  return Array.from(map.values())
+                })()
+              : []
+
+            const first = prices[0] || null
+            return {
+              id: o.id,
+              name: o.name,
+              price_type: o.price_type === "flat" ? "flat_rate" : o.price_type,
+              includes_tax: Boolean(o.includes_tax),
+              profile_id: o.profile_id ?? null,
+              amount: first ? first.amount : null,
+              currency_code: first ? first.currency_code : null,
+              prices,
+            }
+          })
+
           return {
-            id: o.id,
-            name: o.name,
-            price_type: o.price_type,
-            includes_tax: Boolean(o.includes_tax),
-            profile_id: o.profile_id ?? null,
-            amount: first ? first.amount : null,
-            currency_code: first ? first.currency_code : null,
-            prices,
+            zone_id: z.id,
+            zone_name: z.name,
+            countries,
+            options,
           }
-        })
+        }),
+      }
 
-        return {
-          zone_id: z.id,
-          zone_name: z.name,
-          countries,
-          options,
-        }
-      }),
+      CACHE = { data: base, until: nowSec() + ttlSec() }
+    }
+
+    let payload: ShippingMatrixResponse = {
+      zones: base.zones.map((z) => ({
+        ...z,
+        countries: [...z.countries],
+        options: z.options.map((o) => ({ ...o, prices: [...o.prices] })),
+      })),
     }
 
     if (filterZoneId) {
@@ -132,7 +150,6 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
         .map((z) => ({ ...z, countries: [filterCountry] }))
     }
 
-    CACHE = { data: payload, until: nowSec() + ttlSec() }
     res.json(payload)
   } catch (err: any) {
     res.status(500).json({
