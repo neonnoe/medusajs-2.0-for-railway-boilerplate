@@ -1,5 +1,5 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 
 /**
  * GET /store/shipping-matrix
@@ -21,7 +21,9 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
  *           "profile_id": null,
  *           "amount": 1000,
  *           "currency_code": "EUR",
- *           "prices": [{ "amount": 1000, "currency_code": "EUR" }]
+ *           "prices": [
+ *             { "region_id": "reg_eu", "amount": 1000, "currency_code": "EUR" }
+ *           ]
  *         }
  *       ]
  *     }
@@ -29,7 +31,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
  * }
  */
 
-type PriceDTO = { amount: number; currency_code: string }
+type PriceDTO = { region_id: string; amount: number; currency_code: string }
 type OptionDTO = {
   id: string
   name: string
@@ -82,6 +84,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
           "shipping_options.profile_id",
           "shipping_options.prices.amount",
           "shipping_options.prices.currency_code",
+          "shipping_options.prices.id",
+          "shipping_options.prices.price_rules.attribute",
+          "shipping_options.prices.price_rules.value",
+          "shipping_options.prices.price_rules.operator",
         ],
         // pagination: { take: 200 },
       })
@@ -97,11 +103,22 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
               ? (() => {
                   const map = new Map<string, PriceDTO>()
                   for (const p of o.prices) {
-                    if (typeof p?.amount === "number" && p?.currency_code) {
-                      const code = String(p.currency_code).toUpperCase()
-                      if (!map.has(code)) {
-                        map.set(code, { amount: p.amount, currency_code: code })
-                      }
+                    const regionRule = Array.isArray(p.price_rules)
+                      ? p.price_rules.find((r: any) => r?.attribute === "region_id")
+                      : undefined
+                    const regionId = regionRule?.value
+
+                    if (
+                      regionId &&
+                      typeof p?.amount === "number" &&
+                      p?.currency_code &&
+                      !map.has(regionId)
+                    ) {
+                      map.set(regionId, {
+                        region_id: regionId,
+                        amount: p.amount,
+                        currency_code: String(p.currency_code).toUpperCase(),
+                      })
                     }
                   }
                   return Array.from(map.values())
@@ -128,6 +145,40 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
             options,
           }
         }),
+      }
+      // If configured, calculate precise prices per region using the fulfillment module
+      const regionIds = new Set<string>()
+      base.zones.forEach((z) =>
+        z.options.forEach((o) =>
+          o.prices.forEach((p) => regionIds.add(p.region_id))
+        )
+      )
+
+      if (regionIds.size > 0) {
+        try {
+          const fulfillment: any = req.scope.resolve(Modules.FULFILLMENT)
+          const optionIds = base.zones.flatMap((z) => z.options.map((o) => o.id))
+
+          for (const region_id of regionIds) {
+            const priced: any[] = await fulfillment.calculateShippingOptionsPrices(
+              optionIds.map((id) => ({ id })),
+              { context: { region_id } }
+            )
+            const map = new Map(priced.map((p) => [p.id, p]))
+            for (const z of base.zones) {
+              for (const o of z.options) {
+                const entry = o.prices.find((p) => p.region_id === region_id)
+                const calc = map.get(o.id)
+                if (entry && calc) {
+                  entry.amount = calc.amount
+                  entry.currency_code = calc.currency_code || entry.currency_code
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // swallow pricing errors and proceed with raw amounts
+        }
       }
 
       CACHE = { data: base, until: nowSec() + ttlSec() }
