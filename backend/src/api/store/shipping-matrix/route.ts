@@ -45,8 +45,8 @@ async function getCountryVatRateForShippingOption(
       "tax_rates.rate",
       "tax_rates.is_default",
       "tax_rates.is_combinable",
-      "tax_rates.rules.reference",
-      "tax_rates.rules.reference_id",
+      "tax_rates.tax_rate_rules.reference",
+      "tax_rates.tax_rate_rules.reference_id",
     ],
   })
 
@@ -55,8 +55,8 @@ async function getCountryVatRateForShippingOption(
 
   if (shippingOptionId) {
     const override = tr.tax_rates?.find((r: any) =>
-      Array.isArray(r.rules) &&
-      r.rules.some(
+      Array.isArray(r.tax_rate_rules) &&
+      r.tax_rate_rules.some(
         (rr: any) =>
           rr?.reference === "shipping_option" && rr?.reference_id === shippingOptionId
       )
