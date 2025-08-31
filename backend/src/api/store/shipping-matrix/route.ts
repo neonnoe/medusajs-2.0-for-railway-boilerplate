@@ -34,21 +34,26 @@ async function getCountryVatRateForShippingOption(
 ): Promise<number | null> {
   if (!countryUpper) return null
   const country = countryUpper.toLowerCase()
-
-  const { data: regions } = await query.graph({
-    entity: "tax_region",
-    filters: { country_code: country },
-    fields: [
-      "id",
-      "country_code",
-      "tax_rates.id",
-      "tax_rates.rate",
-      "tax_rates.is_default",
-      "tax_rates.is_combinable",
-      "tax_rates.tax_rate_rules.reference",
-      "tax_rates.tax_rate_rules.reference_id",
-    ],
-  })
+  let regions: any[]
+  try {
+    const result = await query.graph({
+      entity: "tax_region",
+      filters: { country_code: country },
+      fields: [
+        "id",
+        "country_code",
+        "tax_rates.id",
+        "tax_rates.rate",
+        "tax_rates.is_default",
+        "tax_rates.is_combinable",
+        "tax_rates.tax_rate_rules.reference",
+        "tax_rates.tax_rate_rules.reference_id",
+      ],
+    })
+    regions = result?.data
+  } catch {
+    return null
+  }
 
   const tr = regions?.[0]
   if (!tr) return null
